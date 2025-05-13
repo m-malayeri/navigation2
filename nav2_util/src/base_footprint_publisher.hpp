@@ -36,48 +36,42 @@ namespace nav2_util
  * to inject base footprint publisher removing Z, Pitch, and Roll for
  * 3D state estimation but desiring a 2D frame for navigation, visualization, or other reasons
  */
-class BaseFootprintPublisherListener : public tf2_ros::TransformListener
+
+// Port to Humble
+class BaseFootprintPublisherListener
 {
 public:
-  BaseFootprintPublisherListener(tf2::BufferCore & buffer, bool spin_thread, rclcpp::Node & node)
-  : tf2_ros::TransformListener(buffer, spin_thread)
+  BaseFootprintPublisherListener(
+    std::shared_ptr<tf2_ros::Buffer> buffer,
+    rclcpp::Node::SharedPtr node)
+  : node_(node),
+    tf_listener_(std::make_shared<tf2_ros::TransformListener>(*buffer, node, false))
   {
-    node.declare_parameter(
-      "base_link_frame", rclcpp::ParameterValue(std::string("base_link")));
-    node.declare_parameter(
-      "base_footprint_frame", rclcpp::ParameterValue(std::string("base_footprint")));
-    base_link_frame_ = node.get_parameter("base_link_frame").as_string();
-    base_footprint_frame_ = node.get_parameter("base_footprint_frame").as_string();
-    tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node);
+    node_->declare_parameter("base_link_frame", "base_link");
+    node_->declare_parameter("base_footprint_frame", "base_footprint");
+
+    base_link_frame_ = node_->get_parameter("base_link_frame").as_string();
+    base_footprint_frame_ = node_->get_parameter("base_footprint_frame").as_string();
   }
 
-  /**
-   * @brief Overrides TF2 subscription callback to inject base footprint publisher
-   */
-  void subscription_callback(tf2_msgs::msg::TFMessage::ConstSharedPtr msg, bool is_static) override
+  void subscription_callback(tf2_msgs::msg::TFMessage::ConstSharedPtr msg, bool is_static)
   {
-    TransformListener::subscription_callback(msg, is_static);
+    if (is_static) return;
 
-    if (is_static) {
-      return;
-    }
-
-    for (unsigned int i = 0; i != msg->transforms.size(); i++) {
-      auto & t = msg->transforms[i];
+    for (const auto &t : msg->transforms) {
       if (t.child_frame_id == base_link_frame_) {
         geometry_msgs::msg::TransformStamped transform;
         transform.header.stamp = t.header.stamp;
         transform.header.frame_id = base_link_frame_;
         transform.child_frame_id = base_footprint_frame_;
 
-        // Project to Z-zero
         transform.transform.translation = t.transform.translation;
         transform.transform.translation.z = 0.0;
 
-        // Remove Roll and Pitch
         tf2::Quaternion q;
         q.setRPY(0, 0, tf2::getYaw(t.transform.rotation));
         q.normalize();
+
         transform.transform.rotation.x = q.x();
         transform.transform.rotation.y = q.y();
         transform.transform.rotation.z = q.z();
@@ -89,9 +83,12 @@ public:
     }
   }
 
-protected:
+private:
+  rclcpp::Node::SharedPtr node_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-  std::string base_link_frame_, base_footprint_frame_;
+  std::string base_link_frame_;
+  std::string base_footprint_frame_;
 };
 
 /**
@@ -100,23 +97,23 @@ protected:
  * stripping away the Z, Roll, and Pitch of the full 3D state to provide
  * a 2D projection for navigation when state estimation is full 3D
  */
-class BaseFootprintPublisher : public rclcpp::Node
-{
+
+ // Port to Humble 
+class BaseFootprintPublisher: public rclcpp::Node{
 public:
-  /**
-   * @brief A constructor
-   */
   explicit BaseFootprintPublisher(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
   : Node("base_footprint_publisher", options)
   {
     RCLCPP_INFO(get_logger(), "Creating base footprint publisher");
+
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
     auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
       get_node_base_interface(),
       get_node_timers_interface());
     tf_buffer_->setCreateTimerInterface(timer_interface);
-    listener_publisher_ = std::make_shared<BaseFootprintPublisherListener>(
-      *tf_buffer_, true, *this);
+
+    // 👇 The Fix
+    listener_publisher_ = std::make_shared<BaseFootprintPublisherListener>(tf_buffer_, shared_from_this());
   }
 
 protected:

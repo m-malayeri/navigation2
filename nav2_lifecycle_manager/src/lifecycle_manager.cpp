@@ -191,24 +191,37 @@ LifecycleManager::createLifecycleServiceClients()
   }
 }
 
+// Port to Humble
 void
 LifecycleManager::createLifecycleServiceServers()
 {
   message("Creating and initializing lifecycle service servers");
+
   manager_srv_ = std::make_shared<nav2_util::ServiceServer<ManageLifecycleNodes>>(
     get_name() + std::string("/manage_nodes"),
-    shared_from_this(),
-    std::bind(&LifecycleManager::managerCallback, this, _1, _2, _3),
-    rclcpp::SystemDefaultsQoS(),
-    callback_group_);
+    std::static_pointer_cast<rclcpp::Node>(shared_from_this()),
+    std::function<void(
+      const std::shared_ptr<rmw_request_id_t>,
+      const std::shared_ptr<ManageLifecycleNodes::Request>,
+      std::shared_ptr<ManageLifecycleNodes::Response>
+    )>(std::bind(&LifecycleManager::managerCallback, this, _1, _2, _3)),
+    rmw_qos_profile_services_default,
+    callback_group_
+  );
 
   is_active_srv_ = std::make_shared<nav2_util::ServiceServer<std_srvs::srv::Trigger>>(
     get_name() + std::string("/is_active"),
-    shared_from_this(),
-    std::bind(&LifecycleManager::isActiveCallback, this, _1, _2, _3),
-    rclcpp::SystemDefaultsQoS(),
-    callback_group_);
+    std::static_pointer_cast<rclcpp::Node>(shared_from_this()),
+    std::function<void(
+      const std::shared_ptr<rmw_request_id_t>,
+      const std::shared_ptr<std_srvs::srv::Trigger::Request>,
+      std::shared_ptr<std_srvs::srv::Trigger::Response>
+    )>(std::bind(&LifecycleManager::isActiveCallback, this, _1, _2, _3)),
+    rmw_qos_profile_services_default,
+    callback_group_
+  );
 }
+
 
 void
 LifecycleManager::destroyLifecycleServiceClients()

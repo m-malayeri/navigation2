@@ -51,10 +51,15 @@ public:
           node_->get_node_base_interface());
     }
     // When a nullptr is passed, the client will use the default callback group
+    
+    // Port to Humble
     client_ = node_->template create_client<ServiceT>(
       service_name,
-      rclcpp::SystemDefaultsQoS(),
+      rmw_qos_profile_services_default,
       callback_group_);
+
+    // Port to Humble
+    /*
     rcl_service_introspection_state_t introspection_state = RCL_SERVICE_INTROSPECTION_OFF;
     if (!node_->has_parameter("service_introspection_mode")) {
       node_->declare_parameter("service_introspection_mode", "disabled");
@@ -69,6 +74,7 @@ public:
 
     this->client_->configure_introspection(
         node_->get_clock(), rclcpp::SystemDefaultsQoS(), introspection_state);
+    */
   }
 
   using RequestType = typename ServiceT::Request;

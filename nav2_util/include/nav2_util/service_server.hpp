@@ -41,19 +41,25 @@ public:
     const std::string & service_name,
     const NodeT & node,
     CallbackType callback,
-    const rclcpp::QoS & qos = rclcpp::ServicesQoS(),
+    // Port to Humble
+    //const rclcpp::QoS & qos = rclcpp::ServicesQoS(),
+    const rmw_qos_profile_t & qos = rmw_qos_profile_services_default,
     rclcpp::CallbackGroup::SharedPtr callback_group = nullptr)
   : service_name_(service_name), callback_(callback)
   {
+    // Port to Humble
     server_ = node->template create_service<ServiceT>(
-      service_name,
+      service_name_,
       [this](const std::shared_ptr<rmw_request_id_t> request_header,
-      const std::shared_ptr<RequestType> request, std::shared_ptr<ResponseType> response) {
+            const std::shared_ptr<RequestType> request,
+            std::shared_ptr<ResponseType> response) {
         this->callback_(request_header, request, response);
       },
       qos,
       callback_group);
-
+    
+    // Port to Humble
+    /*
     rcl_service_introspection_state_t introspection_state = RCL_SERVICE_INTROSPECTION_OFF;
     if(!node->has_parameter("service_introspection_mode")) {
       node->declare_parameter("service_introspection_mode", "disabled");
@@ -68,6 +74,7 @@ public:
 
     this->server_->configure_introspection(
     node->get_clock(), rclcpp::SystemDefaultsQoS(), introspection_state);
+    */
   }
 
 protected:

@@ -189,23 +189,22 @@ ParameterHandler::ParameterHandler(
     params_.use_cost_regulated_linear_velocity_scaling = false;
   }
 
-  post_set_params_handler_ = node->add_post_set_parameters_callback(
-    std::bind(
-      &ParameterHandler::updateParametersCallback,
-      this, std::placeholders::_1));
+  // Port to Humble
   on_set_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
-      &ParameterHandler::validateParameterUpdatesCallback,
+      &ParameterHandler::updateAndValidateParametersCallback,
       this, std::placeholders::_1));
 }
 
 ParameterHandler::~ParameterHandler()
 {
   auto node = node_.lock();
-  if (post_set_params_handler_ && node) {
-    node->remove_post_set_parameters_callback(post_set_params_handler_.get());
+  // Port to Humble
+  if (on_set_params_handler_ && node) {
+    node->remove_on_set_parameters_callback(on_set_params_handler_.get());
+    on_set_params_handler_.reset();
   }
-  post_set_params_handler_.reset();
+  on_set_params_handler_ .reset();
   if (on_set_params_handler_ && node) {
     node->remove_on_set_parameters_callback(on_set_params_handler_.get());
   }
@@ -319,6 +318,40 @@ ParameterHandler::updateParametersCallback(
       }
     }
   }
+}
+
+// Port to Humble
+rcl_interfaces::msg::SetParametersResult
+ParameterHandler::updateAndValidateParametersCallback(const std::vector<rclcpp::Parameter> & parameters)
+{
+  rcl_interfaces::msg::SetParametersResult result;
+  result.successful = true;
+  result.reason = "Success";
+
+  // === VALIDATION ===
+  for (const auto & param : parameters) {
+    if (param.get_name() == "max_speed") {
+      double value = param.as_double();
+      if (value <= 0.0) {
+        result.successful = false;
+        result.reason = "max_speed must be greater than 0.";
+        return result;
+      }
+    }
+
+    // Add other validation logic here...
+  }
+
+  // === UPDATE ===
+  for (const auto & param : parameters) {
+    if (param.get_name() == "max_speed") {
+      max_speed_ = param.as_double();  // example update
+    }
+
+    // Add other parameter updates here...
+  }
+
+  return result;
 }
 
 }  // namespace nav2_regulated_pure_pursuit_controller

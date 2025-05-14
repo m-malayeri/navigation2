@@ -95,14 +95,19 @@ protected:
    */
   void
   updateParametersCallback(std::vector<rclcpp::Parameter> parameters);
+  // Port to Humble
+  rcl_interfaces::msg::SetParametersResult
+  updateAndValidateParametersCallback(const std::vector<rclcpp::Parameter> & parameters);
   rcl_interfaces::msg::SetParametersResult
   validateParameterUpdatesCallback(std::vector<rclcpp::Parameter> parameters);
   // Dynamic parameters handler
   std::mutex mutex_;
-  rclcpp::node_interfaces::PostSetParametersCallbackHandle::SharedPtr post_set_params_handler_;
+  // Port to Humble
+  rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr on_set_params_handler_;
   Parameters params_;
   std::string plugin_name_;
+  double max_speed_;
   rclcpp::Logger logger_ {rclcpp::get_logger("RegulatedPurePursuitController")};
 };
 

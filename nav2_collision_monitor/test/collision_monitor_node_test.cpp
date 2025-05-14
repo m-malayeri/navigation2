@@ -31,7 +31,7 @@
 #include "sensor_msgs/msg/range.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "geometry_msgs/msg/polygon_stamped.hpp"
+#include "nav2_msgs/msg/polygon_stamped.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
 #include "tf2_ros/transform_broadcaster.h"
@@ -190,13 +190,13 @@ protected:
   std::shared_ptr<CollisionMonitorWrapper> cm_;
 
   // Footprint publisher
-  rclcpp::Publisher<geometry_msgs::msg::PolygonStamped>::SharedPtr footprint_pub_;
+  rclcpp::Publisher<nav2_msgs::msg::PolygonStamped>::SharedPtr footprint_pub_;
 
   // Data source publishers
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr range_pub_;
-  rclcpp::Publisher<geometry_msgs::msg::PolygonInstanceStamped>::SharedPtr polygon_source_pub_;
+  rclcpp::Publisher<nav2_msgs::msg::PolygonInstanceStamped>::SharedPtr polygon_source_pub_;
 
   // Working with cmd_vel_in/cmd_vel_out
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_in_pub_;
@@ -222,7 +222,7 @@ Tester::Tester()
   cm_ = std::make_shared<CollisionMonitorWrapper>();
   cm_->declare_parameter("enable_stamped_cmd_vel", rclcpp::ParameterValue(false));
 
-  footprint_pub_ = cm_->create_publisher<geometry_msgs::msg::PolygonStamped>(
+  footprint_pub_ = cm_->create_publisher<nav2_msgs::msg::PolygonStamped>(
     FOOTPRINT_TOPIC, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
   scan_pub_ = cm_->create_publisher<sensor_msgs::msg::LaserScan>(
@@ -231,7 +231,7 @@ Tester::Tester()
     POINTCLOUD_NAME, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   range_pub_ = cm_->create_publisher<sensor_msgs::msg::Range>(
     RANGE_NAME, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-  polygon_source_pub_ = cm_->create_publisher<geometry_msgs::msg::PolygonInstanceStamped>(
+  polygon_source_pub_ = cm_->create_publisher<nav2_msgs::msg::PolygonInstanceStamped>(
     POLYGON_NAME, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
   cmd_vel_in_pub_ = cm_->create_publisher<geometry_msgs::msg::Twist>(
@@ -565,13 +565,13 @@ void Tester::sendTransforms(const rclcpp::Time & stamp)
 
 void Tester::publishFootprint(const double radius, const rclcpp::Time & stamp)
 {
-  std::unique_ptr<geometry_msgs::msg::PolygonStamped> msg =
-    std::make_unique<geometry_msgs::msg::PolygonStamped>();
+  std::unique_ptr<nav2_msgs::msg::PolygonStamped> msg =
+    std::make_unique<nav2_msgs::msg::PolygonStamped>();
 
   msg->header.frame_id = BASE_FRAME_ID;
   msg->header.stamp = stamp;
 
-  geometry_msgs::msg::Point32 p;
+  nav2_msgs::msg::Point32 p;
   p.x = radius;
   p.y = radius;
   msg->polygon.points.push_back(p);
@@ -661,13 +661,13 @@ void Tester::publishRange(const double dist, const rclcpp::Time & stamp)
 
 void Tester::publishPolygon(const double dist, const rclcpp::Time & stamp)
 {
-  std::unique_ptr<geometry_msgs::msg::PolygonInstanceStamped> msg =
-    std::make_unique<geometry_msgs::msg::PolygonInstanceStamped>();
+  std::unique_ptr<nav2_msgs::msg::PolygonInstanceStamped> msg =
+    std::make_unique<nav2_msgs::msg::PolygonInstanceStamped>();
 
   msg->header.frame_id = SOURCE_FRAME_ID;
   msg->header.stamp = stamp;
 
-  geometry_msgs::msg::Point32 p;
+  nav2_msgs::msg::Point32 p;
   p.x = 1.0;
   p.y = dist;
   msg->polygon.polygon.points.push_back(p);

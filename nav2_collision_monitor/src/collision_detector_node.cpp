@@ -67,6 +67,7 @@ CollisionDetector::on_configure(const rclcpp_lifecycle::State & state)
   return nav2_util::CallbackReturn::SUCCESS;
 }
 
+// Port to Humble
 nav2_util::CallbackReturn
 CollisionDetector::on_activate(const rclcpp_lifecycle::State & /*state*/)
 {
@@ -82,8 +83,8 @@ CollisionDetector::on_activate(const rclcpp_lifecycle::State & /*state*/)
   }
 
   // Creating timer
-  timer_ = this->create_timer(
-    std::chrono::duration<double>{1.0 / frequency_},
+  timer_ = this->create_wall_timer(
+    std::chrono::duration<double>(1.0 / frequency_),
     std::bind(&CollisionDetector::process, this));
 
   // Creating bond connection
@@ -91,6 +92,7 @@ CollisionDetector::on_activate(const rclcpp_lifecycle::State & /*state*/)
 
   return nav2_util::CallbackReturn::SUCCESS;
 }
+// Port to Humble
 
 nav2_util::CallbackReturn
 CollisionDetector::on_deactivate(const rclcpp_lifecycle::State & /*state*/)

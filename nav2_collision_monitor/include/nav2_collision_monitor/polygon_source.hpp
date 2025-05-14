@@ -19,8 +19,11 @@
 #include <vector>
 #include <string>
 
-#include "geometry_msgs/msg/polygon_instance_stamped.hpp"
-#include "geometry_msgs/msg/polygon_stamped.hpp"
+// Port to Humble, use custom msg for missing polygon message
+// #include "geometry_msgs/msg/polygon_instance_stamped.hpp"
+#include "nav2_msgs/msg/polygon_instance_stamped.hpp"
+
+#include "nav2_msgs/msg/polygon_stamped.hpp"
 
 #include "nav2_collision_monitor/source.hpp"
 
@@ -82,7 +85,7 @@ public:
    * @param data Output vector of Point
    */
   void convertPolygonStampedToPoints(
-    const geometry_msgs::msg::PolygonStamped & polygon,
+    const nav2_msgs::msg::PolygonStamped & polygon,
     std::vector<Point> & data) const;
 
 protected:
@@ -96,15 +99,15 @@ protected:
    * @brief PolygonSource data callback
    * @param msg Shared pointer to PolygonSource message
    */
-  void dataCallback(geometry_msgs::msg::PolygonInstanceStamped::ConstSharedPtr msg);
+  void dataCallback(nav2_msgs::msg::PolygonInstanceStamped::ConstSharedPtr msg);
 
   // ----- Variables -----
 
   /// @brief PolygonSource data subscriber
-  rclcpp::Subscription<geometry_msgs::msg::PolygonInstanceStamped>::SharedPtr data_sub_;
+  rclcpp::Subscription<nav2_msgs::msg::PolygonInstanceStamped>::SharedPtr data_sub_;
 
   /// @brief Latest data obtained
-  std::vector<geometry_msgs::msg::PolygonInstanceStamped> data_;
+  std::vector<nav2_msgs::msg::PolygonInstanceStamped> data_;
 
   /// @brief distance between sampled points on polygon edges
   double sampling_distance_;

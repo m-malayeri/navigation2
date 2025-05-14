@@ -19,6 +19,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/Point32.msg"
+  "msg/Polygon.msg"
+  "msg/PolygonStamped.msg"
+  "msg/PolygonInstance.msg"
+  "msg/PolygonInstanceStamped.msg"
+  "msg/Quaternion.msg"
+  "msg/Vector3.msg"
+  "msg/Transform.msg"
+  "msg/TransformStamped.msg"
   "msg/CollisionMonitorState.msg"
   "msg/CollisionDetectorState.msg"
   "msg/Costmap.msg"
